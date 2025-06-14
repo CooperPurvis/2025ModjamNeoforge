@@ -1,5 +1,7 @@
 package com.hamburgerphd;
 
+import com.hamburgerphd.datagen.ModDataGen;
+import com.hamburgerphd.registry.ModBiomes;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -34,10 +36,17 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import static net.neoforged.neoforge.common.NeoForge.EVENT_BUS;
+
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
 @Mod(HamburgerPHD.MODID)
 public class HamburgerPHD
 {
+    public HamburgerPHD(IEventBus modEventBus) {
+        ModBiomes.register(modEventBus); // ✅ Register your biomes
+        // Add other registries (items, features, etc.) here
+    }
+
     // Define mod id in a common place for everything to reference
     public static final String MODID = "hamburgerphd";
     // Directly reference a slf4j logger
@@ -73,6 +82,7 @@ public class HamburgerPHD
     {
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
+        EVENT_BUS.addListener(ModDataGen::gatherData);
 
         // Register the Deferred Register to the mod event bus so blocks get registered
         BLOCKS.register(modEventBus);
@@ -84,13 +94,14 @@ public class HamburgerPHD
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (HamburgerPHD) to respond directly to events.
         // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
-        NeoForge.EVENT_BUS.register(this);
+        EVENT_BUS.register(this);
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)
@@ -133,4 +144,5 @@ public class HamburgerPHD
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
         }
     }
+
 }
